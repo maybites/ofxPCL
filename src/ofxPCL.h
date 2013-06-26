@@ -35,6 +35,10 @@
 #include <pcl/sample_consensus/method_types.h>
 #include <pcl/filters/extract_indices.h>
 
+// euclidean segmentation
+#include <pcl/kdtree/kdtree.h>
+#include <pcl/segmentation/extract_clusters.h>
+
 // triangulate
 #include <pcl/features/normal_3d.h>
 #include <pcl/surface/gp3.h>
@@ -212,6 +216,101 @@ inline vector<T> segmentation(T cloud, const pcl::SacModel model_type = pcl::SAC
 	}
 
 	return result;
+}
+
+//
+// segmentation
+//
+template <typename T>
+inline vector<T> euclideanSegmentation(T cloud, const pcl::SacModel model_type = pcl::SACMODEL_PLANE, const float distance_threshold = 1, const int min_points_limit = 10, const int max_segment_count = 30)
+{
+    assert(cloud);
+    
+    if (cloud->points.empty()) return;
+    
+    pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients());
+    pcl::PointIndices::Ptr inliers(new pcl::PointIndices());
+    
+    pcl::SACSegmentation<typename T::value_type::PointType> seg;
+    seg.setOptimizeCoefficients(false);
+    
+    seg.setModelType(model_type);
+    seg.setMethodType(pcl::SAC_RANSAC);
+    seg.setDistanceThreshold(distance_threshold);
+    seg.setMaxIterations(500);
+    
+    T temp(new typename T::value_type(*cloud));
+    const size_t original_szie = temp->points.size();
+    
+    pcl::ExtractIndices<typename T::value_type::PointType> extract;
+    vector<T> result;
+    
+    int segment_count = 0;
+    while (temp->size() > original_szie * 0.3)
+    {
+        if (segment_count > max_segment_count) break;
+        segment_count++;
+        
+        seg.setInputCloud(temp);
+        seg.segment(*inliers, *coefficients);
+        
+        if (inliers->indices.size() < min_points_limit)
+            break;
+        
+        T filterd_point_cloud(new typename T::value_type);
+        
+        extract.setInputCloud(temp);
+        extract.setIndices(inliers);
+        extract.setNegative(false);
+        extract.filter(*filterd_point_cloud);
+        
+        if (filterd_point_cloud->points.size() > 0)
+        {
+            result.push_back(filterd_point_cloud);
+        }
+        
+        std::cout << "PointCloud representing the Cluster: " << temp->points.size () << " data points." << std::endl;
+        std::stringstream ss;
+        
+        extract.setNegative(true);
+        extract.filter(*temp);
+    }
+    
+    // Creating the KdTree object for the search method of the extraction
+    typename pcl::search::KdTree<typename T::value_type::PointType>::Ptr tree (new pcl::search::KdTree<typename T::value_type::PointType>);
+    tree->setInputCloud (temp);
+    
+    std::vector<pcl::PointIndices> cluster_indices;
+    pcl::EuclideanClusterExtraction<typename T::value_type::PointType> ec;
+    ec.setClusterTolerance (0.02); // 2cm
+    ec.setMinClusterSize (100);
+    ec.setMaxClusterSize (25000);
+    ec.setSearchMethod (tree);
+    ec.setInputCloud (temp);
+    ec.extract (cluster_indices);
+
+    int j = 0;
+    for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin (); it != cluster_indices.end (); ++it)
+    {
+        T cloud_cluster (new typename T::value_type);
+        for (std::vector<int>::const_iterator pit = it->indices.begin (); pit != it->indices.end (); pit++)
+            cloud_cluster->points.push_back (temp->points[*pit]); //*
+        cloud_cluster->width = cloud_cluster->points.size ();
+        cloud_cluster->height = 1;
+        cloud_cluster->is_dense = true;
+        
+        if (cloud_cluster->points.size() > 0)
+        {
+            result.push_back(cloud_cluster);
+        }
+
+        std::cout << "PointCloud representing the Cluster: " << cloud_cluster->points.size () << " data points." << std::endl;
+        std::stringstream ss;
+        j++;
+    }
+
+    
+    return result;
 }
 
 //
