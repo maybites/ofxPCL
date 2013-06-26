@@ -26,3 +26,16 @@
 1. Copy libraries to data folder
 
 		$ python copyfiles.py PATH_TO_YOUR_PROJECT
+
+1. add a custom build setting of USE_HEADERMAP = NO for the target. 
+	1. Open the target's info panel on the "Build" pane.
+	2. Pull down the action pop-up menu at the bottom left of the window, select "Add User-Defined Setting".
+	3. In the newly added line, set the first column ("Setting") to USE_HEADERMAP, and the second column ("Value") to NO.
+
+1. add the correct include the following paths to the target (target Build settings "Header Search Paths"). In my example that would be:
+	1. ../../../addons/ofxPCL/src
+	2. ../../../addons/ofxPCL/libs/pcl/include/pcl-1.6
+	3. ../../../addons/ofxPCL/libs/pcl/include/eigen3
+	4. ../../../addons/ofxPCL/libs/pcl/include
+
+1. Any other additional ofx libraries need to be added in the same fashion.
