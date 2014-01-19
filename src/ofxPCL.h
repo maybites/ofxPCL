@@ -269,8 +269,8 @@ inline vector<T> euclideanSegmentation(T cloud, const pcl::SacModel model_type =
             result.push_back(filterd_point_cloud);
         }
         
-        std::cout << "PointCloud representing the Cluster: " << temp->points.size () << " data points." << std::endl;
-        std::stringstream ss;
+        //std::cout << "PointCloud representing the Cluster: " << temp->points.size () << " data points." << std::endl;
+        //std::stringstream ss;
         
         extract.setNegative(true);
         extract.filter(*temp);

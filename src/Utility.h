@@ -32,16 +32,16 @@ void convert(const T1&, T2&);
 template <>
 inline void convert(const PointCloud& cloud, ofMesh& mesh)
 {
-	assert(cloud);
-	
-	const size_t num_point = cloud->points.size();
-	if (mesh.getNumVertices() != num_point) mesh.getVertices().resize(num_point);
-
-	for (int i = 0; i < num_point; i++)
-	{
-		PointType &p = cloud->points[i];
-		mesh.setVertex(i, ofVec3f(p.x, p.y, p.z));
-	}
+    assert(cloud);
+    
+    const size_t num_point = cloud->points.size();
+    if (mesh.getNumVertices() != num_point) mesh.getVertices().resize(num_point);
+    
+    for (int i = 0; i < num_point; i++)
+    {
+        PointType &p = cloud->points[i];
+        mesh.setVertex(i, ofVec3f(p.x, p.y, p.z));
+    }
 }
 
 template <>
@@ -104,25 +104,25 @@ inline void convert(const ColorNormalPointCloud& cloud, ofMesh& mesh)
 
 inline void convert(const vector<ofVec3f> &points, PointCloud& cloud)
 {
-	if (!cloud)
-		cloud = New<PointCloud>();
-	
-	const size_t num_point = points.size();
-	
-	cloud->width = num_point;
-	cloud->height = 1;
-	cloud->points.resize(cloud->width * cloud->height);
-	
-	if (points.empty()) return;
-	
-	for (int i = 0; i < num_point; i++)
-	{
-		PointType &p = cloud->points[i];
-		const ofVec3f &o = points[i];
-		p.x = o.x;
-		p.y = o.y;
-		p.z = o.z;
-	}
+    if (!cloud)
+        cloud = New<PointCloud>();
+    
+    const size_t num_point = points.size();
+    
+    cloud->width = num_point;
+    cloud->height = 1;
+    cloud->points.resize(cloud->width * cloud->height);
+    
+    if (points.empty()) return;
+    
+    for (int i = 0; i < num_point; i++)
+    {
+        PointType &p = cloud->points[i];
+        const ofVec3f &o = points[i];
+        p.x = o.x;
+        p.y = o.y;
+        p.z = o.z;
+    }
 }
 
 inline void convert(const vector<ofVec3f> &points,
